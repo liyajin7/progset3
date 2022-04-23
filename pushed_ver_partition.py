@@ -1,3 +1,6 @@
+
+
+
 # from maxHeap import maxheap
 import sys, gc, math, random, time
 from random import *
@@ -97,7 +100,7 @@ class Solution:
     def randsol (self, n): ()
 
     # to-be-overriden function for generating random neighbor of solution sol of size n
-    def randneighbor (self, n, i, j): ()
+    def randneighbor (self, n): ()
 
     # to-be-overriden function for generating residue
     def residue (self, input, n): ()
@@ -115,71 +118,42 @@ class Solution:
         return self.residue(input, n)
 
     # general HEURISTIC repeated hill climbing solution
-    def hillclimb (self, input, n, stan):
+    def hillclimb (self, input, n):
         for i in range(MAX_ITER):
-            import random
-            random.seed()
+            rneigh = self.randneighbor(n)
+            if rneigh.residue(input, n) < self.residue(input, n):
+                self = rneigh
 
-            new_res = 0
-            curr_res = 0 # @ WHY ISNT THIS WORKING
-            # generate i and j, ensure j ≠ i
-            i = randint(0, n-1)
-            j = i
-            while (j == i):
-                j = randint(0, n-1)
-
-            useJ = (random.uniform(0, 1) < 0.5)
-            # for standard, just compare sums instead of residues directly!
-            if stan:
-                curr_res = self.residue(input, n)
-
-                new_res = curr_res + (-1) * self.ls[i] * 2 * input[i]
-                # check if we should also change index at j
-                if useJ:
-                    new_res += (-1) * self.ls[j] * 2 * input[j]
-
-                if (abs(new_res) < abs(curr_res)):
-                    self.ls[i] = -self.ls[i]
-                    if useJ:
-                        self.ls[j] = -self.ls[j]
-            
-            else:
-                rneigh = self.randneighbor(i, j)
-
-                if rneigh.residue(input, n) < self.residue(input, n):
-                    self = rneigh
-                # del rneigh
-                # gc.collect()
+            del rneigh
+            gc.collect()
 
 
-        return abs(self.residue(input, n))
+        return self.residue(input, n)
             
     # general HEURISTIC repeated simulated annealing solution
-    def simanneal (self, input, n, stan):
+    def simanneal (self, input, n):
         import random
         spprime = self
 
         for i in range(MAX_ITER):
-            # random.seed()
-                sprime = self.randneighbor(n)
+            sprime = self.randneighbor(n)
 
-                res_sp = sprime.residue(input, n)
-                res_self = self.residue(input, n)
-                res_spp = spprime.residue(input,n)
+            res_sp = sprime.residue(input, n)
+            res_self = self.residue(input, n)
+            res_spp = spprime.residue(input,n)
 
-                if res_sp < res_self:
-                    self = sprime
-                elif (random.uniform(0, 1) <= math.exp(-(res_sp - res_self) / T(i))):
-                    self = sprime
-                if res_sp < res_spp:
-                    spprime = self
-                
-                del res_sp, res_self, sprime
-                gc.collect()
+            if res_sp < res_self:
+                self = sprime
+            elif (random.uniform(0, 1) <= math.exp(-(res_sp - res_self) / T(i))):
+                self = sprime
+            if res_sp < res_spp:
+                spprime = self
+            
+            del res_sp, res_self, sprime
+            gc.collect()
 
-            # print("\n\n\n")
                     
-        return abs(self.residue(input, n))
+        return res_spp
 
     # print solution
     def printsol (self):
@@ -204,15 +178,23 @@ class Standard (Solution):
         return rsol
         
     # standard sequence function for generating random neighbor of solution sol of size n
-    def randneighbor (self, i, j):
-        # import random
+    def randneighbor (self, n):
+        import random
         # duplicate neighbor
-        nbor = self
+        nbor = Standard(n)
+        nbor.ls = self.ls[:]
         
+        random.seed()
+        i = randint(0, n-1)
         nbor.ls[i] = -nbor.ls[i]
         
         # change second index with probability 1/2
         if (random.uniform(0, 1) > 0.5):
+            j = i
+
+            # ensure j ≠ i
+            while (j == i):
+                j = randint(0, n-1)
             
             nbor.ls[j] = -nbor.ls[j]
 
@@ -224,7 +206,7 @@ class Standard (Solution):
         for i in range(n):
             res += self.ls[i] * input[i]
         
-        return res
+        return abs(res)
 
 
 # class to represent standard prepartitioned solutions
@@ -242,10 +224,19 @@ class Prepart (Solution):
         return rsol
 
     # prepartitioning function for generating random neighbor of solution sol of size n
-    def randneighbor (self, i, j):
-        
-        nbor = self
-    
+    def randneighbor (self, n):
+        import random
+        random.seed()
+
+        nbor = self #Prepart(n)
+        #nbor.ls = self.ls[:]
+
+        # generate index j to be changed, ensuring it's different than i
+        i = randint(0, n-1)
+        j = nbor.ls[i]
+        while (j == nbor.ls[i]):
+            j = randint(0, n-1)
+
         nbor.ls[i] = j
 
         return nbor
@@ -260,6 +251,7 @@ class Prepart (Solution):
                     newinput[i-1] += input[j-1] 
 
         res = kk(newinput)
+        
 
         return abs(res)
 
@@ -315,12 +307,12 @@ def runTest():
         timing[2] = start-end
 
         start = time.time()
-        output[3] = stan.hillclimb(input, n, True)
+        output[3] = stan.hillclimb(input, n)
         end = time.time()
         timing[3] = start-end
 
         start = time.time()
-        output[4] = stan.simanneal(input, n, True)
+        output[4] = stan.simanneal(input, n)
         end = time.time()
         timing[4] = start-end
 
@@ -335,12 +327,12 @@ def runTest():
         timing[6] = start-end
 
         start = time.time()
-        output[7] = prep.hillclimb(input, n, False)
+        output[7] = prep.hillclimb(input, n)
         end = time.time()
         timing[7] = start-end
 
         start = time.time()
-        output[8] = prep.simanneal(input, n, False)
+        output[8] = prep.simanneal(input, n)
         end = time.time()
         timing[8] = start-end
 
@@ -363,7 +355,6 @@ def main():
         input.append(int(line))
 
     n = len(input)
-    # print("input len:", n)
 
     # run respective algorithm to calculate residue
     stan = Standard(n).randsol(n)
@@ -375,19 +366,17 @@ def main():
     elif (alg == 1): # standard repeated rand
         residue = stan.repeatrand(input, n)
     elif (alg == 2): # standard hillclimb
-        residue = stan.hillclimb(input, n, True)
+        residue = stan.hillclimb(input, n)
     elif (alg == 3): # standard simulated anneal
-        residue = stan.simanneal(input, n, True)
+        residue = stan.simanneal(input, n)
     elif (alg == 11): # prepart repeated rand
         residue = prep.repeatrand(input, n)
     elif (alg == 12): # prepart hillclimb
-        residue = prep.hillclimb(input, n, True)
+        residue = prep.hillclimb(input, n)
     elif (alg == 13): # prepart simanneal
-        residue = prep.simanneal(input, n, True)
+        residue = prep.simanneal(input, n)
     
     print(residue)
 
 if __name__ == "__main__":
     main()
-
-

@@ -148,6 +148,7 @@ class Solution:
 
                 if rneigh.residue(input, n) < self.residue(input, n):
                     self = rneigh
+
                 # del rneigh
                 # gc.collect()
 
@@ -161,6 +162,47 @@ class Solution:
 
         for i in range(MAX_ITER):
             # random.seed()
+
+            # # DECIDES WHETHER OR NOT SET SELF TO NEW RANDOM NEIGHBOR (i,j)
+            # new_res = 0
+            # curr_res = 0
+            # # generate i and j, ensure j ≠ i
+            # i = randint(0, n-1)
+            # j = i
+            # while (j == i):
+            #     j = randint(0, n-1)
+
+            # # for standard, just compare sums instead of residues directly!
+            # if stan:
+            #     selfpp = self
+            #     orig_res = self.residue(input, n)
+
+            #     useJ = (random.uniform(0, 1) < 0.5)
+            #     curr_res = orig_res
+
+            #     new_res = curr_res + (-1) * self.ls[i] * 2 * input[i]
+            #     # check if we should also change index at j
+            #     if useJ:
+            #         new_res += (-1) * self.ls[j] * 2 * input[j]
+
+            #     # print("new_res: ", new_res)
+            #     # print("curr_res: ", curr_res)
+            #     if (abs(new_res) < abs(curr_res)):
+            #         # print("S' < S!!")
+            #         self.ls[i] = -self.ls[i]
+            #         if useJ:
+            #             self.ls[j] = -self.ls[j]
+            #         # print("new_set res: ", new_res)
+            #         # self.printsol()
+            #     elif (random.uniform(0, 1) <= math.exp(-((new_res - curr_res) / T(i)))):
+            #         # print("exp worked!")
+            #         self.ls[i] = -self.ls[i]
+            #         if useJ:
+            #             self.ls[j] = -self.ls[j]
+            #     if (self.residue(input, n) < orig_res):
+            #         selfpp = self
+            #     self = selfpp
+            # else:
                 sprime = self.randneighbor(n)
 
                 res_sp = sprime.residue(input, n)
@@ -209,10 +251,21 @@ class Standard (Solution):
         # duplicate neighbor
         nbor = self
         
+        # nbor = Standard(n)
+        # nbor.ls = self.ls[:]
+        
+        
+        # random.seed()
+        # i = randint(0, n-1)
         nbor.ls[i] = -nbor.ls[i]
         
         # change second index with probability 1/2
         if (random.uniform(0, 1) > 0.5):
+            # j = i
+
+            # # ensure j ≠ i
+            # while (j == i):
+            #     j = randint(0, n-1)
             
             nbor.ls[j] = -nbor.ls[j]
 
@@ -243,9 +296,18 @@ class Prepart (Solution):
 
     # prepartitioning function for generating random neighbor of solution sol of size n
     def randneighbor (self, i, j):
-        
-        nbor = self
-    
+        # import random
+        # random.seed()
+
+        nbor = self #Prepart(n)
+        #nbor.ls = self.ls[:]
+
+        # generate index j to be changed, ensuring it's different than i
+        # i = randint(0, n-1)
+        # j = nbor.ls[i]
+        # while (j == nbor.ls[i]):
+        #     j = randint(0, n-1)
+
         nbor.ls[i] = j
 
         return nbor
@@ -286,7 +348,7 @@ def kk(input):
 
 # used for testing & creating results
 def runTest():
-    for i in range(10):
+    for i in range(5):
         input = [0] * 100
         for i in range(100):
             input[i] = randint(1, 10**12)
@@ -352,40 +414,42 @@ def runTest():
 
 def main():
     # initialize and define variables
-    me, flag, alg, fname = sys.argv
-    alg = int(alg)
-    flag = int(flag)
+    # me, flag, alg, fname = sys.argv
+    # alg = int(alg)
+    # flag = int(flag)
 
-    # store input file into single array
-    f = open(fname, "r")
-    input = []
-    for line in f:
-        input.append(int(line))
+    # # store input file into single array
+    # f = open(fname, "r")
+    # input = []
+    # for line in f:
+    #     input.append(int(line))
 
-    n = len(input)
+    # n = len(input)
     # print("input len:", n)
 
-    # run respective algorithm to calculate residue
-    stan = Standard(n).randsol(n)
-    prep = Prepart(n).randsol(n)
+    runTest()
+
+    # # run respective algorithm to calculate residue
+    # stan = Standard(n).randsol(n)
+    # prep = Prepart(n).randsol(n)
     
-    residue = 0
-    if (alg == 0): # kk
-        residue = kk(input)
-    elif (alg == 1): # standard repeated rand
-        residue = stan.repeatrand(input, n)
-    elif (alg == 2): # standard hillclimb
-        residue = stan.hillclimb(input, n, True)
-    elif (alg == 3): # standard simulated anneal
-        residue = stan.simanneal(input, n, True)
-    elif (alg == 11): # prepart repeated rand
-        residue = prep.repeatrand(input, n)
-    elif (alg == 12): # prepart hillclimb
-        residue = prep.hillclimb(input, n, True)
-    elif (alg == 13): # prepart simanneal
-        residue = prep.simanneal(input, n, True)
+    # residue = 0
+    # if (alg == 0): # kk
+    #     residue = kk(input)
+    # elif (alg == 1): # standard repeated rand
+    #     residue = stan.repeatrand(input, n)
+    # elif (alg == 2): # standard hillclimb
+    #     residue = stan.hillclimb(input, n, True)
+    # elif (alg == 3): # standard simulated anneal
+    #     residue = stan.simanneal(input, n, True)
+    # elif (alg == 11): # prepart repeated rand
+    #     residue = prep.repeatrand(input, n)
+    # elif (alg == 12): # prepart hillclimb
+    #     residue = prep.hillclimb(input, n, True)
+    # elif (alg == 13): # prepart simanneal
+    #     residue = prep.simanneal(input, n, True)
     
-    print(residue)
+    # print(residue)
 
 if __name__ == "__main__":
     main()

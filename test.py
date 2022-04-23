@@ -1,12 +1,12 @@
-# from maxHeap import maxheap
-import sys, gc, math, random, time
 from random import *
-from xml.dom.pulldom import END_ELEMENT
+import sys, random, gc, math
 
-MAX_ITER = 25000
+# random.seed()
+MAX_ITER = 100
 
 def T(iter):
     return (10**10*0.8**(iter/300))
+
 
 class maxheap:
 
@@ -74,6 +74,7 @@ class maxheap:
             h.swap(curr, h.parent(curr))
             curr = h.parent(curr)
 
+
     # returns current max node and reheapifies heap
     def pop (h):
         
@@ -90,7 +91,42 @@ class maxheap:
         for j in range(h.size):
             print(h.heap[j])
         print("\n")
+
+
+
+
+# runs the karmarker karp algorithm
+def kk(input):
+    # create max heap from given input
+    h = maxheap(len(input))
+    for i in range(len(input)):
+        h.insert(input[i])
     
+    # run kk algorithm
+    while (h.size > 1):
+        x, y = h.pop(), h.pop()
+        h.insert(x-y)    
+    
+    # calculate final element, deallocate memory used by heap
+    residue = h.pop()
+    del h
+    gc.collect()
+
+    return residue
+
+
+def ismaxheap(input):
+    n = len(input)
+    for i in range(n):
+        m = i * 2
+        num = input[i]
+        if m + 1 < n:
+            if num < input[m + 1]:
+                return False
+        if m + 2 < n:
+            if num < input[m + 2]:
+                return False
+    return True
 
 class Solution:
     # initialize a solution set of size n
@@ -106,59 +142,35 @@ class Solution:
     # to-be-overriden function for generating residue
     def residue (self, input, n): ()
 
-    # general HEURISTIC repeated random solution
+    # general HEURISTIC solution function
     def repeatrand (self, input, n):
+        # rsol = self.randsol(n)
+
+        # print("repeatrand neighbor: ")
+        # rsol.printsol()
+
         for i in range(MAX_ITER):
             rsol = self.randsol(n)
             if rsol.residue(input, n) < self.residue(input, n):
+                print("UPGRADED")
                 self = rsol
 
-        return self.residue(input, n)
+        return self
 
-    # general HEURISTIC repeated hill climbing solution
-    def hillclimb (self, input, n, stan):
+    # general HEURISTIC solution function @LIYA COULD OPTIMIZE FOR STANDARD SOLUTION
+    def hillclimb (self, input, n):
         for i in range(MAX_ITER):
-            import random
-            random.seed()
+            rneigh = self.randneighbor(n)
+            print("rsneigh res: ", rneigh.residue(input, n))
+            print("curr res: ", self.residue(input, n))
+            if rneigh.residue(input, n) < self.residue(input, n):
+                print("UPGRADED res from ", self.residue(input, n), "to ", rneigh.residue(input, n))
+                self = rneigh
 
-            new_res = 0
-            curr_res = 0 # @ WHY ISNT THIS WORKING
-            # generate i and j, ensure j ≠ i
-            i = randint(0, n-1)
-            j = i
-            while (j == i):
-                j = randint(0, n-1)
-
-            useJ = (random.uniform(0, 1) < 0.5)
-            # for standard, just compare sums instead of residues directly!
-            if stan:
-                curr_res = self.residue(input, n)
-
-                new_res = curr_res + (-1) * self.ls[i] * 2 * input[i]
-                # check if we should also change index at j
-                if useJ:
-                    new_res += (-1) * self.ls[j] * 2 * input[j]
-
-                if (abs(new_res) < abs(curr_res)):
-                    self.ls[i] = -self.ls[i]
-                    if useJ:
-                        self.ls[j] = -self.ls[j]
+        return self
             
-            else:
-                rneigh = self.randneighbor(i, j)
 
-                if rneigh.residue(input, n) < self.residue(input, n):
-                    self = rneigh
-
-                # del rneigh
-                # gc.collect()
-
-
-        return abs(self.residue(input, n))
-            
-    # general HEURISTIC repeated simulated annealing solution
     def simanneal (self, input, n):
-        import random
         spprime = self
 
         for i in range(MAX_ITER):
@@ -166,19 +178,16 @@ class Solution:
 
             res_sp = sprime.residue(input, n)
             res_self = self.residue(input, n)
-            res_spp = spprime.residue(input,n)
 
             if res_sp < res_self:
                 self = sprime
             elif (random.uniform(0, 1) <= math.exp(-(res_sp - res_self) / T(i))):
                 self = sprime
-            if res_sp < res_spp:
+            if res_sp < spprime.residue(input,n):
                 spprime = self
-            
-            # del res_sp, res_self, res_spp
-            # gc.collect()
                     
-        return spprime.residue(input, n)#, res_spp
+        return spprime
+
 
     # print solutions visibly
     def printsol (self):
@@ -188,6 +197,9 @@ class Solution:
     
 
 class Standard (Solution):
+    # def __init__ (self):
+    #     ()
+
     # standard sequence function for generating random solutions
     def randsol (self, n):
         rsol = Standard(n)
@@ -199,15 +211,23 @@ class Standard (Solution):
             else: rsol.ls[i] = -1 # rsol.ls[i] = -1
         
         return rsol
+        # for i in range(n):
+        #     if (randint(0,1) == 1):
+        #         self.ls[i] = 1
+        #         # rsol.ls[i] = 1
+        #     else: self.ls[i] = -1 # rsol.ls[i] = -1
         
+        # return self
+
     # standard sequence function for generating random neighbor of solution sol of size n
     def randneighbor (self, n):
-        import random
         # duplicate neighbor
         nbor = Standard(n)
         nbor.ls = self.ls[:]
-        
-        
+        # for i in range(n):
+        #     nbor.ls[i] = sol[i]
+
+        # change first index
         random.seed()
         i = randint(0, n-1)
         nbor.ls[i] = -nbor.ls[i]
@@ -237,7 +257,6 @@ class Prepart (Solution):
     
     # prepartitioning function for generating random solutions
     def randsol (self, n):
-        import random
         random.seed()
 
         rsol = Prepart(n)
@@ -248,11 +267,10 @@ class Prepart (Solution):
 
     # prepartitioning function for generating random neighbor of solution sol of size n
     def randneighbor (self, n):
-        import random
         random.seed()
 
-        nbor = self #Prepart(n)
-        #nbor.ls = self.ls[:]
+        nbor = Prepart(n)
+        nbor.ls = self.ls[:]
 
         # generate index j to be changed, ensuring it's different than i
         i = randint(0, n-1)
@@ -263,6 +281,7 @@ class Prepart (Solution):
         nbor.ls[i] = j
 
         return nbor
+        
 
     # prepartitioning function for generating residue
     def residue (self, input, n):
@@ -273,6 +292,8 @@ class Prepart (Solution):
                 if (self.ls[j-1] == i):
                     newinput[i-1] += input[j-1] 
 
+        # print("A': ", newinput)
+
         res = kk(newinput)
         del newinput
         gc.collect()
@@ -281,81 +302,50 @@ class Prepart (Solution):
 
 
 
-# runs the karmarker karp algorithm
-def kk(input):
-    # create max heap from given input
-    h = maxheap(len(input))
-    for i in range(len(input)):
-        h.insert(input[i])
-    
-    # run kk algorithm
-    while (h.size > 1):
-        x, y = h.pop(), h.pop()
-        h.insert(x-y)    
-    
-    # calculate final element, deallocate memory used by heap
-    residue = h.pop()
-    del h
-    gc.collect()
 
-    return residue
-
-
-def runTest():
-    for i in range(5):
-        input = [0] * 100
-        for i in range(100):
-            input[i] = randint(1, 10**12)
-
-
-        stan = Standard(100).randsol(100)
-        prep = Prepart(100).randsol(100)
-        
-        n = 100
-        # print("KK residue: ", kk(input))
-        # print("\ninitial residue, standard sequence:", stan.residue(input, n))
-        # print("\nRR standard sequence:", stan.repeatrand(input, n))
-        # print("\nHC standard sequence:", stan.hillclimb(input, n))
-        # print("\nSA standard sequence:", stan.simanneal(input, n))
-        # print("\ninitial residue, standard sequence:", prep.residue(input, n))
-        # print("\nRR prepartition:", prep.repeatrand(input, n))
-        # print("\nHC prepartition:", prep.hillclimb(input, n))
-        # print("\nSA prepartition:", prep.simanneal(input, n))
-
-        print(kk(input), "\t", stan.residue(input, n), "\t", stan.repeatrand(input, n), "\t", stan.hillclimb(input, n, True), "\t", stan.simanneal(input, n, True), "\t", prep.residue(input, n), "\t", prep.repeatrand(input, n), "\t", prep.hillclimb(input, n), "\t", prep.simanneal(input, n))
 
 
 def main():
-    # initialize and define variables
-    me, flag, alg, fname = sys.argv
-    alg = int(alg)
-    flag = int(flag)
+    me, fname = sys.argv
 
-    # store input file into single array
     f = open(fname, "r")
     input = []
+    
     for line in f:
         input.append(int(line))
 
-    # # run respective algorithm to calculate residue
-    # residue = 0
-    # if (flag == 0):
-    #     residue = kk(input)
-    # elif (flag == 1):
-    
-    # print(residue)
+    # print(ismaxheap(input))
+
+    # rrStan = Standard(n).repeatrand(input, n)
 
     n = len(input)
-    # print("\ninput! ", input)
+    print("\ninput! ", input)
 
-    start = time.time()
-    # rsol = Prepart(n).randsol(n)
+
+    rsol = Prepart(n).randsol(n)
+    rsol.printsol()
+    rr_sol = rsol.simanneal(input, n)
+    print("hc solution: ")
+    rr_sol.printsol()
+
+    print("hc residue: ", rr_sol.residue(input, n))
+    
+    
+    # res = rsol.residue(input, n)
     # rsol.printsol()
-    # rr_sol = rsol.hillclimb(input, n)
-    runTest()
-    # print("hc residue: ", rr_sol)
-    end = time.time()
-    print("runtime: ", end-start)
+    # print("res: ", res)
+    
+    # rsol = Prepart(n).randsol(n)
+    # print("\nrandom solution: ")
+    # rsol.printsol()
+    # res = rsol.residue(input, n)
+    # print("\nres w random solution: ", res)
+
+    # rneigh = rsol.randneighbor(n)
+    # print("\nrneighbor: ")
+    # rneigh.printsol()
+    # resneigh = rneigh.residue(input, n)
+    # [print("\nrneighbor residue: ", resneigh)]
 
 if __name__ == "__main__":
     main()

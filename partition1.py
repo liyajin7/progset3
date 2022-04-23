@@ -132,24 +132,41 @@ class Solution:
             # for standard, just compare sums instead of residues directly!
             if stan:
                 curr_res = self.residue(input, n)
+                # print("curr_res:", curr_res)
+                # print("current i:", i, "\ncurrent self: ")
+                # self.printsol()
 
+                # print("input[i]: ", input[i])
+                # print("self[i]: ", self.ls[i])
                 new_res = curr_res + (-1) * self.ls[i] * 2 * input[i]
+                # print("new_res, i:", new_res)
+
                 # check if we should also change index at j
                 if useJ:
+                    # print("current j:", j)
                     new_res += (-1) * self.ls[j] * 2 * input[j]
+                    # print("new_res, j:", new_res)
 
                 if (abs(new_res) < abs(curr_res)):
+                    # print("CURR BEING RESET")
                     self.ls[i] = -self.ls[i]
                     if useJ:
                         self.ls[j] = -self.ls[j]
+                    # print("new self: ")
+                    # self.printsol()
+                    # print("NEW CURR RES: ", self.residue(input, n))
+
+
+                # print("\n\n\n")
             
             else:
                 rneigh = self.randneighbor(i, j)
 
                 if rneigh.residue(input, n) < self.residue(input, n):
                     self = rneigh
-                # del rneigh
-                # gc.collect()
+
+                del rneigh
+                gc.collect()
 
 
         return abs(self.residue(input, n))
@@ -160,26 +177,24 @@ class Solution:
         spprime = self
 
         for i in range(MAX_ITER):
-            # random.seed()
-                sprime = self.randneighbor(n)
+            sprime = self.randneighbor(n)
 
-                res_sp = sprime.residue(input, n)
-                res_self = self.residue(input, n)
-                res_spp = spprime.residue(input,n)
+            res_sp = sprime.residue(input, n)
+            res_self = self.residue(input, n)
+            res_spp = spprime.residue(input,n)
 
-                if res_sp < res_self:
-                    self = sprime
-                elif (random.uniform(0, 1) <= math.exp(-(res_sp - res_self) / T(i))):
-                    self = sprime
-                if res_sp < res_spp:
-                    spprime = self
-                
-                del res_sp, res_self, sprime
-                gc.collect()
+            if res_sp < res_self:
+                self = sprime
+            elif (random.uniform(0, 1) <= math.exp(-(res_sp - res_self) / T(i))):
+                self = sprime
+            if res_sp < res_spp:
+                spprime = self
+            
+            del res_sp, res_self, sprime
+            gc.collect()
 
-            # print("\n\n\n")
                     
-        return abs(self.residue(input, n))
+        return res_spp
 
     # print solution
     def printsol (self):
@@ -209,10 +224,21 @@ class Standard (Solution):
         # duplicate neighbor
         nbor = self
         
+        # nbor = Standard(n)
+        # nbor.ls = self.ls[:]
+        
+        
+        # random.seed()
+        # i = randint(0, n-1)
         nbor.ls[i] = -nbor.ls[i]
         
         # change second index with probability 1/2
         if (random.uniform(0, 1) > 0.5):
+            # j = i
+
+            # # ensure j ≠ i
+            # while (j == i):
+            #     j = randint(0, n-1)
             
             nbor.ls[j] = -nbor.ls[j]
 
@@ -243,9 +269,18 @@ class Prepart (Solution):
 
     # prepartitioning function for generating random neighbor of solution sol of size n
     def randneighbor (self, i, j):
-        
-        nbor = self
-    
+        # import random
+        # random.seed()
+
+        nbor = self #Prepart(n)
+        #nbor.ls = self.ls[:]
+
+        # generate index j to be changed, ensuring it's different than i
+        # i = randint(0, n-1)
+        # j = nbor.ls[i]
+        # while (j == nbor.ls[i]):
+        #     j = randint(0, n-1)
+
         nbor.ls[i] = j
 
         return nbor
@@ -389,5 +424,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
