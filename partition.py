@@ -1,12 +1,8 @@
 # from maxHeap import maxheap
 import sys, gc, math, random, time
 from random import *
-from xml.dom.pulldom import END_ELEMENT
 
 MAX_ITER = 25000
-
-def T(iter):
-    return (10**10*0.8**(iter/300))
 
 class maxheap:
 
@@ -34,10 +30,6 @@ class maxheap:
             return 2 * p + 2
         else: return -1
 
-    # checks if the position p node has a parent or not
-    def hasParent(h, p):
-        return h.parent(p) < len(h.heap)
-
     # swap two values in heap
     def swap (h, p1, p2):
         (h.heap[p1], h.heap[p2]) = (h.heap[p2], h.heap[p1])
@@ -58,7 +50,6 @@ class maxheap:
         if biggest != p:
             h.swap(p, biggest)
             h.maxheapify(biggest)
-
 
     # insert element into heap
     def insert (h, el):
@@ -91,6 +82,11 @@ class maxheap:
             print(h.heap[j])
         print("\n")
     
+
+# cooling schedule function given in prompt doc
+def T(iter):
+    return (10**10*0.8**(iter/300))
+
 
 class Solution:
     # initialize a solution set of size n
@@ -146,16 +142,18 @@ class Solution:
             # del res_sp, res_self, res_spp
             # gc.collect()
                     
-        return spprime.residue(input, n)#, res_spp
+        return res_spp
 
-    # print solutions visibly
+    # print solution
     def printsol (self):
         for i in range(len(self.ls)):
             print(self.ls[i])
         print("\n")
     
 
+# class to represent standard sequence solutions
 class Standard (Solution):
+    
     # standard sequence function for generating random solutions
     def randsol (self, n):
         rsol = Standard(n)
@@ -200,6 +198,7 @@ class Standard (Solution):
         return abs(res)
 
 
+# class to represent standard prepartitioned solutions
 class Prepart (Solution):
     
     # prepartitioning function for generating random solutions
@@ -247,7 +246,6 @@ class Prepart (Solution):
         return abs(res)
 
 
-
 # runs the karmarker karp algorithm
 def kk(input):
     # create max heap from given input
@@ -268,6 +266,7 @@ def kk(input):
     return residue
 
 
+# used for testing & creating results
 def runTest():
     for i in range(10):
         input = [0] * 100
@@ -278,18 +277,59 @@ def runTest():
         stan = Standard(100).randsol(100)
         prep = Prepart(100).randsol(100)
         
+        output = [0] * 9
+        timing = [0] * 9
         n = 100
-        # print("KK residue: ", kk(input))
-        # print("\ninitial residue, standard sequence:", stan.residue(input, n))
-        # print("\nRR standard sequence:", stan.repeatrand(input, n))
-        # print("\nHC standard sequence:", stan.hillclimb(input, n))
-        # print("\nSA standard sequence:", stan.simanneal(input, n))
-        # print("\ninitial residue, standard sequence:", prep.residue(input, n))
-        # print("\nRR prepartition:", prep.repeatrand(input, n))
-        # print("\nHC prepartition:", prep.hillclimb(input, n))
-        # print("\nSA prepartition:", prep.simanneal(input, n))
 
-        print(kk(input), "\t", stan.residue(input, n), "\t", stan.repeatrand(input, n), "\t", stan.hillclimb(input, n), "\t", stan.simanneal(input, n), "\t", prep.residue(input, n), "\t", prep.repeatrand(input, n), "\t", prep.hillclimb(input, n), "\t", prep.simanneal(input, n))
+        start = time.time()
+        output[0] = kk(input)
+        end = time.time()
+        timing[0] = start-end
+
+        start = time.time()
+        output[1] = stan.residue(input, n)
+        end = time.time()
+        timing[1] = start-end
+
+        start = time.time()
+        output[2] = stan.repeatrand(input, n)
+        end = time.time()
+        timing[2] = start-end
+
+        start = time.time()
+        output[3] = stan.hillclimb(input, n)
+        end = time.time()
+        timing[3] = start-end
+
+        start = time.time()
+        output[4] = stan.simanneal(input, n)
+        end = time.time()
+        timing[4] = start-end
+
+        start = time.time()
+        output[5] = prep.residue(input, n)
+        end = time.time()
+        timing[5] = start-end
+
+        start = time.time()
+        output[6] = prep.repeatrand(input, n)
+        end = time.time()
+        timing[6] = start-end
+
+        start = time.time()
+        output[7] = prep.hillclimb(input, n)
+        end = time.time()
+        timing[7] = start-end
+
+        start = time.time()
+        output[8] = prep.simanneal(input, n)
+        end = time.time()
+        timing[8] = start-end
+
+        for i in range(9):
+            print(output[i], "\t\t\t", timing[i])
+
+        #print(kk(input), "\t", stan.residue(input, n), "\t", stan.repeatrand(input, n), "\t", stan.hillclimb(input, n), "\t", stan.simanneal(input, n), "\t", prep.residue(input, n), "\t", prep.repeatrand(input, n), "\t", prep.hillclimb(input, n), "\t", prep.simanneal(input, n))
 
 
 def main():
@@ -311,19 +351,19 @@ def main():
     prep = Prepart(n).randsol(n)
     
     residue = 0
-    if (flag == 0): # kk
+    if (alg == 0): # kk
         residue = kk(input)
-    elif (flag == 1): # standard repeated rand
+    elif (alg == 1): # standard repeated rand
         residue = stan.repeatrand(input, n)
-    elif (flag == 2): # standard hillclimb
+    elif (alg == 2): # standard hillclimb
         residue = stan.hillclimb(input, n)
-    elif (flag == 3): # standard simulated anneal
+    elif (alg == 3): # standard simulated anneal
         residue = stan.simanneal(input, n)
-    elif (flag == 11): # prepart repeated rand
+    elif (alg == 11): # prepart repeated rand
         residue = prep.repeatrand(input, n)
-    elif (flag == 12): # prepart hillclimb
+    elif (alg == 12): # prepart hillclimb
         residue = prep.hillclimb(input, n)
-    elif (flag == 13): # prepart simanneal
+    elif (alg == 13): # prepart simanneal
         residue = prep.simanneal(input, n)
     
     print(residue)
